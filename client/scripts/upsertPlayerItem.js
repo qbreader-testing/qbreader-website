@@ -7,7 +7,7 @@ import { escapeHTML } from './utilities/strings.js';
  * @param {string} ownerId - ID of the room owner
  */
 // overall handling of some of these mechanics in the upsertion section might not be best idea? works though
-export default function upsertPlayerItem (player, USER_ID, ownerId, socket, isPublic, showingOffline, rscore, bscore) {
+export default function upsertPlayerItem(player, USER_ID, ownerId, socket, isPublic, showingOffline, rscore, bscore) {
   console.log('rscore' + rscore);
   console.log('bscore' + bscore);
   const { userId, username, powers = 0, tens = 0, negs = 0, tuh = 0, points = 0, online, team } = player;
@@ -32,14 +32,13 @@ export default function upsertPlayerItem (player, USER_ID, ownerId, socket, isPu
     const displayUsername = (playerIsOwner && !isPublic) ? `👑 ${escapeHTML(username)}` : escapeHTML(username);
 
     playerItem.innerHTML = `
-  <div class="d-flex ${team} justify-content-between align-items-center">
-      <div class="d-flex align-items-center">
-          <span id="username-${userId}" class="me-1">${displayUsername}</span>
-          <!-- Dropdown  -->
-      </div>
-      <span><span id="points-${userId}" class="badge rounded-pill ${online ? 'bg-success' : 'bg-secondary'}">${points}</span></span>
-  </div>
-`;
+    <div class="d-flex ${team} justify-content-between align-items-center">
+        <div class="d-flex align-items-center">
+            <span id="username-${userId}" class="me-1">${displayUsername}</span>
+            <!-- Dropdown  -->
+        </div>
+        <span><span id="points-${userId}" class="badge rounded-pill ${online ? 'bg-success' : 'bg-secondary'}">${points}</span></span>
+    </div>`;
 
     // Set attributes for the popover
     playerItem.setAttribute('data-bs-container', 'body');
@@ -69,14 +68,13 @@ export default function upsertPlayerItem (player, USER_ID, ownerId, socket, isPu
       console.log('first r');
       const redHeader = document.createElement('div');
       redHeader.innerHTML = `
-  <div class="d-flex red justify-content-between align-items-center">
-      <div class="d-flex align-items-center">
-          <span class="me-1">Red Team</span>
-          
-      </div>
-      <span><span id="points-red" class="badge rounded-pill bg-success">${rscore}</span></span>
-  </div>
-`;
+      <div class="d-flex red justify-content-between align-items-center">
+          <div class="d-flex align-items-center">
+              <span class="me-1">Red Team</span>
+              
+          </div>
+          <span><span id="points-red" class="badge rounded-pill bg-success">${rscore}</span></span>
+      </div>`;
       redHeader.id = 'redHeader';
       redPlayers = document.createElement('div');
       redPlayers.id = 'redPlayers';
@@ -89,14 +87,13 @@ export default function upsertPlayerItem (player, USER_ID, ownerId, socket, isPu
 
     if (team === 'red') {
       redHeader.innerHTML = `
-  <div class="d-flex red justify-content-between align-items-center">
-      <div class="d-flex align-items-center">
-          <span class="me-1">Red Team</span>
-          
-      </div>
-      <span><span id="points-red" class="badge rounded-pill bg-success">${rscore}</span></span>
-  </div>
-`;
+      <div class="d-flex red justify-content-between align-items-center">
+          <div class="d-flex align-items-center">
+              <span class="me-1">Red Team</span>
+              
+          </div>
+          <span><span id="points-red" class="badge rounded-pill bg-success">${rscore}</span></span>
+      </div>`;
       redPlayers.appendChild(playerItem);
     }
 

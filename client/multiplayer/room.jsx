@@ -788,9 +788,7 @@ function showSkipButton () {
 }
 
 function sortPlayerListGroup (descending = true) {
-  if (PLAYER_TEAM) {
-    return;
-  }
+
   const listGroup = document.getElementById('player-list-group');
   const items = Array.from(listGroup.children);
   const offset = 'list-group-'.length;
@@ -945,7 +943,6 @@ document.getElementById('buzz').addEventListener('click', function () {
 document.getElementById('switch-team').addEventListener('click', function () {
   this.blur();
   if (audio.soundEffects) audio.buzz.play();
-  console.log('s');
   socket.send(JSON.stringify({ type: 'change-team', curTeam: PLAYER_TEAM }));
 });
 
@@ -953,7 +950,7 @@ document.getElementById('chat').addEventListener('click', function () {
   this.blur();
   document.getElementById('chat-input-group').classList.remove('d-none');
   document.getElementById('chat-input').focus();
-  (JSON.stringify({ type: 'chat-live-update', message: '' }));
+  socket.send(JSON.stringify({ type: 'chat-live-update', message: '' }));
 });
 
 document.getElementById('chat-form').addEventListener('submit', function (event) {

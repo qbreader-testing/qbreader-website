@@ -87,7 +87,6 @@ export default class ServerTeamRoom extends TossupRoom {
     } else {
       newTeam = 'red';
     }
-    console.log(newTeam + 'is ');
     let newRscore = 0;
     let newBscore = 0;
     this.players[userId].team = newTeam;
@@ -98,9 +97,6 @@ export default class ServerTeamRoom extends TossupRoom {
         newBscore += this.players[num].points;
       }
     }
-
-    console.log(newRscore);
-    console.log(newBscore);
 
     this.emitMessage({ type: 'change-team', user: userId, username: this.players[userId].username, newTeam, newRscore, newBscore });
   }
@@ -176,9 +172,6 @@ export default class ServerTeamRoom extends TossupRoom {
       }
     }
     this.players[userId].team = team;
-    console.log(team);
-    console.log(this.redPlayers);
-    console.log(this.bluePlayers);
 
     this.rscore = 0;
     for (const num in this.redPlayers) {
@@ -188,8 +181,6 @@ export default class ServerTeamRoom extends TossupRoom {
     for (const num in this.bluePlayers) {
       this.bscore += this.bluePlayers[num].points;
     }
-    console.log(this.rscore);
-    console.log(this.bscore);
     socket.send(JSON.stringify({
       type: 'connection-acknowledged',
       userId,
@@ -273,7 +264,6 @@ export default class ServerTeamRoom extends TossupRoom {
   }
 
   giveAnswer (userId, { givenAnswer }) {
-    console.log('Special give answer');
     if (typeof givenAnswer !== 'string') { return false; }
     if (this.buzzedIn !== userId) { return false; }
 
