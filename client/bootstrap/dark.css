@@ -9537,12 +9537,12 @@ a.list-group-item:hover {
   min-height: 90px;
 }
 
-.blue {
-  background-color: blue;
+.red-header {
+  background-color: #ff3a3a;
 }
 
-.red {
-  background-color: red;
+.blue-header {
+  background-color: #3a3aff;
 }
 
 .ui-slider {

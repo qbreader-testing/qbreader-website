@@ -7,7 +7,7 @@ import { escapeHTML } from './utilities/strings.js';
  * @param {string} ownerId - ID of the room owner
  */
 // overall handling of some of these mechanics in the upsertion section might not be best idea? works though
-export default function upsertPlayerItem(player, USER_ID, ownerId, socket, isPublic, showingOffline, rscore, bscore) {
+export default function upsertPlayerItem (player, USER_ID, ownerId, socket, isPublic, showingOffline, rscore, bscore) {
   console.log('rscore' + rscore);
   console.log('bscore' + bscore);
   const { userId, username, powers = 0, tens = 0, negs = 0, tuh = 0, points = 0, online, team } = player;
@@ -32,9 +32,9 @@ export default function upsertPlayerItem(player, USER_ID, ownerId, socket, isPub
     const displayUsername = (playerIsOwner && !isPublic) ? `👑 ${escapeHTML(username)}` : escapeHTML(username);
 
     playerItem.innerHTML = `
-    <div class="d-flex ${team} justify-content-between align-items-center">
+    <div class="d-flex justify-content-between align-items-center">
         <div class="d-flex align-items-center">
-            <span id="username-${userId}" class="me-1">${displayUsername}</span>
+            <span id="username-${userId}" class="me-1 ">${displayUsername}</span>
             <!-- Dropdown  -->
         </div>
         <span><span id="points-${userId}" class="badge rounded-pill ${online ? 'bg-success' : 'bg-secondary'}">${points}</span></span>
@@ -65,10 +65,9 @@ export default function upsertPlayerItem(player, USER_ID, ownerId, socket, isPub
     let redPlayers = document.getElementById('redPlayers');
 
     if (!redPlayers) {
-      console.log('first r');
       const redHeader = document.createElement('div');
       redHeader.innerHTML = `
-      <div class="d-flex red justify-content-between align-items-center">
+      <div class="d-flex red-header justify-content-between align-items-center">
           <div class="d-flex align-items-center">
               <span class="me-1">Red Team</span>
               
@@ -78,7 +77,6 @@ export default function upsertPlayerItem(player, USER_ID, ownerId, socket, isPub
       redHeader.id = 'redHeader';
       redPlayers = document.createElement('div');
       redPlayers.id = 'redPlayers';
-      redPlayers.className = 'red';
 
       document.getElementById('player-list-group').appendChild(redHeader);
       document.getElementById('player-list-group').appendChild(redPlayers);
@@ -87,7 +85,7 @@ export default function upsertPlayerItem(player, USER_ID, ownerId, socket, isPub
 
     if (team === 'red') {
       redHeader.innerHTML = `
-      <div class="d-flex red justify-content-between align-items-center">
+      <div class="d-flex red-header justify-content-between align-items-center">
           <div class="d-flex align-items-center">
               <span class="me-1">Red Team</span>
               
@@ -100,10 +98,9 @@ export default function upsertPlayerItem(player, USER_ID, ownerId, socket, isPub
     let bluePlayers = document.getElementById('bluePlayers');
 
     if (!bluePlayers) {
-      console.log('first b');
       const blueHeader = document.createElement('div');
       blueHeader.innerHTML = `
-  <div class="d-flex blue justify-content-between align-items-center">
+  <div class="d-flex blue-header justify-content-between align-items-center">
       <div class="d-flex align-items-center">
           <span class="me-1">Blue Team</span>
           
@@ -115,7 +112,7 @@ export default function upsertPlayerItem(player, USER_ID, ownerId, socket, isPub
       blueHeader.id = 'blueHeader';
       bluePlayers = document.createElement('div');
       bluePlayers.id = 'bluePlayers';
-      bluePlayers.className = 'blue';
+ 
 
       document.getElementById('player-list-group').appendChild(blueHeader);
       document.getElementById('player-list-group').appendChild(bluePlayers);
@@ -124,7 +121,7 @@ export default function upsertPlayerItem(player, USER_ID, ownerId, socket, isPub
 
     if (team === 'blue') {
       blueHeader.innerHTML = `
-  <div class="d-flex blue justify-content-between align-items-center">
+  <div class="d-flex blue-header justify-content-between align-items-center">
       <div class="d-flex align-items-center">
           <span class="me-1">Blue Team</span>
           
