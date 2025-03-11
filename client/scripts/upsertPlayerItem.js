@@ -17,7 +17,6 @@ export default function upsertPlayerItem (player, USER_ID, ownerId, socket, isPu
     const celerity = player?.celerity?.correct?.average ?? player?.celerity ?? 0;
     const playerIsOwner = ownerId === userId;
 
-
     // Remove the existing player item if it exists
     if (document.getElementById('list-group-' + userId)) {
       document.getElementById('list-group-' + userId).remove();
