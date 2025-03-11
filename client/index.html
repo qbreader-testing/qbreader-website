@@ -22,60 +22,32 @@
             <a class="navbar-brand ms-1 py-0" id="logo" href="/">
                 <span class="logo-prefix">QB</span><span class="logo-suffix">Reader</span>
             </a>
-            <style>
-                #logo {
-                    font-family: Inter, 'Source Sans Pro', sans-serif;
-                    font-size: 1.5rem;
-                    font-weight: bold;
-                    text-decoration-line: none;
-                }
-
-                .logo-prefix {
-                    background: linear-gradient(160deg, #cc0000 30%, #cc0000 47.5%, #e9ba00 47.5%, #e9ba00 52.5%, #cc0000 52.5%, #cc0000 70%);
-                    -webkit-background-clip: text;
-                    -webkit-text-fill-color: transparent;
-                }
-
-                .logo-suffix {
-                    color: #000000;
-                }
-            </style>
             <button class="navbar-toggler" data-bs-target="#navbarSupportedContent" data-bs-toggle="collapse" type="button"
                 aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarSupportedContent">
-                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-                    <li class="nav-item">
-                        <a class="nav-link" href="/singleplayer">Singleplayer</a>
+                <div class="navbar-nav me-auto mb-2 mb-lg-0">
+                    <a class="nav-link" href="/singleplayer">Singleplayer</a>
+                    <a class="nav-link" href="/multiplayer">Multiplayer</a>
+                    <a class="nav-link" href="/db">Database</a>
+                    <a class="nav-link" href="/frequency-list">Frequency List</a>
+                    <a class="nav-link" href="/geoword">Geoword</a>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            Tools
+                        </a>
+                        <ul class="dropdown-menu">
+                            <a class="dropdown-item" href="/tools/api-docs">API Docs</a>
+                            <a class="dropdown-item" href="/tools/packet-parser">Packet Parser</a>
+                        </ul>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/multiplayer">Multiplayer</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/db">Database</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/frequency-list">Frequency List</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/geoword">Geoword</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/api-docs">API</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/about">About</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="/settings">Settings</a>
-                    </li>
-                </ul>
+                    <a class="nav-link" href="/about">About</a>
+                    <a class="nav-link" href="/settings">Settings</a>
+                </div>
                 <div class="d-flex">
                     <ul class="navbar-nav mb-2 mb-lg-0">
-                        <li class="nav-item">
-                            <a class="nav-link" href="/user/login" id="login-link">Log in</a>
-                        </li>
+                        <a class="nav-link" href="/user/login" id="login-link">Log in</a>
                     </ul>
                 </div>
             </div>
@@ -115,8 +87,8 @@
                         <p>The answerlines from this database have been aggregated into a series of frequency lists by category.</p>
                         <p class="text-center"><a class="btn btn-primary" href="/frequency-list">Frequency List</a></p>
                         <p>
-                            The questions are parsed using the <a href="https://github.com/qbreader/packet-parser">QB Reader packet
-                                parser</a>.
+                            The questions are parsed using the <a href="https://github.com/qbreader/packet-parser">Python</a> or
+                            <a href="/tools/packet-parser">JavaScript</a> packet parser.
                         </p>
                     </div>
                 </div>
@@ -145,8 +117,8 @@
                     <div class="card-body">
                         <h5>API</h5>
                         <p>
-                            Most features of QB Reader can be accessed <a href="/api-docs">through the API</a>. You can also use the <a
-                                href="https://github.com/qbreader/python-module">python wrapper</a> to interact with the API.
+                            Most features of QB Reader can be accessed <a href="/tools/api-docs">through the API</a>. You can also use
+                            the <a href="https://github.com/qbreader/python-module">python wrapper</a> to interact with the API.
                         </p>
                         <p>
                             You can also directly view the <a href="https://github.com/qbreader/website">Github source code</a> and the
