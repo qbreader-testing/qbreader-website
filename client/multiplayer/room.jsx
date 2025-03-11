@@ -404,6 +404,7 @@ async function giveAnswer ({ celerity, directive, directedPrompt, givenAnswer, p
       } else if (players[userId].team === 'blue') {
         BLUE_SCORE += 15;
       }
+      logEventConditionally(username, `on team "${players[userId].team}" answered correctly, so their team will control the bonus.`);
     } else if (score === 10) {
       players[userId].tens++;
       if (players[userId].team === 'red') {
@@ -411,6 +412,7 @@ async function giveAnswer ({ celerity, directive, directedPrompt, givenAnswer, p
       } else if (players[userId].team === 'blue') {
         BLUE_SCORE += 10;
       }
+      logEventConditionally(username, `on team ${players[userId].team} answered correctly, so their team will control the bonus.`);
     } else if (score < 0) {
       players[userId].negs++;
       if (players[userId].team === 'red') {
