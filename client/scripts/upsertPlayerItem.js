@@ -8,18 +8,15 @@ import { escapeHTML } from './utilities/strings.js';
  */
 // overall handling of some of these mechanics in the upsertion section might not be best idea? works though
 export default function upsertPlayerItem (player, USER_ID, ownerId, socket, isPublic, showingOffline, rscore, bscore) {
-  console.log('rscore' + rscore);
-  console.log('bscore' + bscore);
   const { userId, username, powers = 0, tens = 0, negs = 0, tuh = 0, points = 0, online, team } = player;
   if (team === 'red' || team === 'blue') {
     if (!player || !player.userId) {
       console.error('Player or player.userId is undefined', { player });
       return;
     }
-    console.log(player);
     const celerity = player?.celerity?.correct?.average ?? player?.celerity ?? 0;
     const playerIsOwner = ownerId === userId;
-    console.log('Player ' + username + ' joined on team ' + team);
+
 
     // Remove the existing player item if it exists
     if (document.getElementById('list-group-' + userId)) {
@@ -112,8 +109,6 @@ export default function upsertPlayerItem (player, USER_ID, ownerId, socket, isPu
       blueHeader.id = 'blueHeader';
       bluePlayers = document.createElement('div');
       bluePlayers.id = 'bluePlayers';
- 
-
       document.getElementById('player-list-group').appendChild(blueHeader);
       document.getElementById('player-list-group').appendChild(bluePlayers);
     }

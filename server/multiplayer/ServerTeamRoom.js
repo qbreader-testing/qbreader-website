@@ -82,10 +82,16 @@ export default class ServerTeamRoom extends TossupRoom {
 
   changeTeam (userId, { curTeam }) {
     let newTeam;
+    console.log("player on team " + this.players[userId].team + " self-reports team as " + curTeam);
     if (curTeam === 'red') {
       newTeam = 'blue';
-    } else {
+      console.log("switching team to blue");
+    } else if (curTeam === 'blue') {
+
       newTeam = 'red';
+      console.log("switching team to red");
+    } else {
+      console.log("LARGE ERR MISREPPED TEAM");
     }
     let newRscore = 0;
     let newBscore = 0;
