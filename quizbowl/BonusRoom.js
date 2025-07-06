@@ -5,6 +5,15 @@ export default class BonusRoom extends QuestionRoom {
   constructor (name, categories = [], subcategories = [], alternateSubcategories = []) {
     super(name, categories, subcategories, alternateSubcategories);
 
+    this.getNextLocalQuestion = () => {
+      if (this.localQuestions.bonuses.length === 0) { return null; }
+      if (this.settings.randomizeOrder) {
+        const randomIndex = Math.floor(Math.random() * this.localQuestions.bonuses.length);
+        return this.localQuestions.bonuses.splice(randomIndex, 1)[0];
+      }
+      return this.localQuestions.bonuses.shift();
+    };
+
     this.bonus = {};
     this.bonusProgress = BONUS_PROGRESS_ENUM.NOT_STARTED;
     /**
@@ -51,6 +60,7 @@ export default class BonusRoom extends QuestionRoom {
   giveAnswer (userId, { givenAnswer }) {
     if (typeof givenAnswer !== 'string') { return false; }
 
+    this.liveAnswer = '';
     clearInterval(this.timer.interval);
     this.emitMessage({ type: 'timer-update', timeRemaining: ANSWER_TIME_LIMIT * 10 });
 

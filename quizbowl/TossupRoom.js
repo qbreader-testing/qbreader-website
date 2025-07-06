@@ -6,6 +6,15 @@ export default class TossupRoom extends QuestionRoom {
   constructor (name, categories = [], subcategories = [], alternateSubcategories = []) {
     super(name, categories, subcategories, alternateSubcategories);
 
+    this.getNextLocalQuestion = () => {
+      if (this.localQuestions.tossups.length === 0) { return null; }
+      if (this.settings.randomizeOrder) {
+        const randomIndex = Math.floor(Math.random() * this.localQuestions.tossups.length);
+        return this.localQuestions.tossups.splice(randomIndex, 1)[0];
+      }
+      return this.localQuestions.tossups.shift();
+    };
+
     this.timeoutID = null;
     /**
      * @type {string | null}
@@ -275,10 +284,10 @@ export default class TossupRoom extends QuestionRoom {
     if (Object.keys(this.tossup || {}).length === 0) return;
 
     this.tossupProgress = TOSSUP_PROGRESS_ENUM.ANSWER_REVEALED;
-    this.tossup.markedQuestion = insertTokensIntoHTML(this.tossup.question, this.tossup.question_sanitized, [this.buzzpointIndices], [' (#) ']);
+    this.tossup.markedQuestion = insertTokensIntoHTML(this.tossup.question, this.tossup.question_sanitized, { ' (#) ': this.buzzpointIndices });
     this.emitMessage({
       type: 'reveal-answer',
-      question: insertTokensIntoHTML(this.tossup.question, this.tossup.question_sanitized, [this.buzzpointIndices], [' (#) ']),
+      question: insertTokensIntoHTML(this.tossup.question, this.tossup.question_sanitized, { ' (#) ': this.buzzpointIndices }),
       answer: this.tossup.answer
     });
   }

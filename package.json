@@ -1,6 +1,6 @@
 {
     "name": "qbreader",
-    "version": "7.3.4",
+    "version": "7.6.2",
     "type": "module",
     "scripts": {
         "test": "mocha",
@@ -16,7 +16,6 @@
         "dev": "npm run build && npm run start"
     },
     "dependencies": {
-        "@aws-sdk/client-s3": "^3.633.0",
         "bootstrap": "5.2.3",
         "cookie-session": "^2.0.0",
         "cors": "^2.8.5",
@@ -28,11 +27,11 @@
         "express-rate-limit": "^6.7.0",
         "jsdom": "^21.1.0",
         "jsonwebtoken": "^9.0.0",
-        "mongodb": "^4.17.2",
+        "mongodb": "^6.17.0",
         "morgan": "^1.10.0",
         "nodemailer": "^6.9.13",
         "number-to-words": "^1.2.4",
-        "qb-answer-checker": "^1.1.6",
+        "qb-answer-checker": "^1.1.7",
         "react": "^18.2.0",
         "react-dom": "^18.2.0",
         "roman-numerals": "^0.3.2",
@@ -49,7 +48,7 @@
         "chai": "^4.3.7",
         "eslint": "^8.28.0",
         "eslint-plugin-react": "^7.31.11",
-        "mocha": "^10.2.0",
+        "mocha": "^11.6.0",
         "sass": "^1.56.2",
         "semistandard": "^17.0.0"
     },

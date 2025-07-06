@@ -28,22 +28,23 @@
             </button>
             <div class="collapse navbar-collapse" id="navbarSupportedContent">
                 <div class="navbar-nav me-auto mb-2 mb-lg-0">
-                    <a class="nav-link" href="/singleplayer">Singleplayer</a>
-                    <a class="nav-link" href="/multiplayer">Multiplayer</a>
-                    <a class="nav-link" href="/db">Database</a>
-                    <a class="nav-link" href="/frequency-list">Frequency List</a>
-                    <a class="nav-link" href="/geoword">Geoword</a>
+                    <a class="nav-link" href="/singleplayer/">Singleplayer</a>
+                    <a class="nav-link" href="/multiplayer/">Multiplayer</a>
+                    <a class="nav-link" href="/database/">Database</a>
+                    <a class="nav-link" href="/frequency-list/">Frequency List</a>
+                    <a class="nav-link" href="/geoword/">Geoword</a>
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                             Tools
                         </a>
                         <ul class="dropdown-menu">
-                            <a class="dropdown-item" href="/tools/api-docs">API Docs</a>
-                            <a class="dropdown-item" href="/tools/packet-parser">Packet Parser</a>
+                            <a class="dropdown-item" href="/tools/api-docs/">API Docs</a>
+                            <a class="dropdown-item" href="/tools/db-explorer/">DB Explorer</a>
+                            <a class="dropdown-item" href="/tools/packet-parser/">Packet Parser</a>
                         </ul>
                     </li>
-                    <a class="nav-link" href="/about">About</a>
-                    <a class="nav-link" href="/settings">Settings</a>
+                    <a class="nav-link" href="/about/">About</a>
+                    <a class="nav-link" href="/settings/">Settings</a>
                 </div>
                 <div class="d-flex">
                     <ul class="navbar-nav mb-2 mb-lg-0">
@@ -65,12 +66,12 @@
                         <h5>Question Reader</h5>
                         <p>QB Reader is a text-based quizbowl question reader. Play some questions on your own:</p>
                         <p class="text-center">
-                            <a class="btn btn-primary" href="/singleplayer/tossups">Tossups</a>
-                            <a class="btn btn-primary" href="/singleplayer/bonuses">Bonuses</a>
+                            <a class="btn btn-primary" href="/singleplayer/tossups/">Tossups</a>
+                            <a class="btn btn-primary" href="/singleplayer/bonuses/">Bonuses</a>
                         </p>
                         <p>Or, join a multiplayer room to play against other people:</p>
                         <p class="text-center">
-                            <a class="btn btn-success" href="/multiplayer">Multiplayer</a>
+                            <a class="btn btn-success" href="/multiplayer/">Multiplayer</a>
                         </p>
                     </div>
                 </div>
@@ -83,12 +84,12 @@
                             QB Reader comes with a searchable database of questions which have been downloaded and parsed from <a
                                 href="https://quizbowlpackets.com/">https://quizbowlpackets.com/</a>.
                         </p>
-                        <p class="text-center"><a class="btn btn-primary" href="/database">Database</a></p>
+                        <p class="text-center"><a class="btn btn-primary" href="/database/">Database</a></p>
                         <p>The answerlines from this database have been aggregated into a series of frequency lists by category.</p>
-                        <p class="text-center"><a class="btn btn-primary" href="/frequency-list">Frequency List</a></p>
+                        <p class="text-center"><a class="btn btn-primary" href="/frequency-list/">Frequency List</a></p>
                         <p>
                             The questions are parsed using the <a href="https://github.com/qbreader/packet-parser">Python</a> or
-                            <a href="/tools/packet-parser">JavaScript</a> packet parser.
+                            <a href="/tools/packet-parser/">JavaScript</a> packet parser.
                         </p>
                     </div>
                 </div>
@@ -99,16 +100,16 @@
                         <h5>Account</h5>
                         <p>
                             <a href="/user/signup">Sign up for an account</a> to track your stats, view per-question stats, and
-                            play <a href="/geoword">geoword</a>. If you already have an account, <a href="/user/login">login
-                                here</a>. To find out more about what an account can do, check out the <a href="/about">about
+                            play <a href="/geoword/">geoword</a>. If you already have an account, <a href="/user/login">login
+                                here</a>. To find out more about what an account can do, check out the <a href="/about/">about
                                 page</a>.
                         </p>
                         <h5>Discord</h5>
                         <p class="text-center">
-                            <a class="btn btn-primary" href="https://discord.gg/5ue7MucTGQ">Join the official Discord here.</a>
+                            <a class="btn btn-primary" href="https://discord.gg/5ue7MucTGQ">Join the official Discord.</a>
                         </p>
                         <h5>Settings</h5>
-                        <p class="text-center"><a class="btn btn-primary" href="/settings">Adjust site-wide settings here.</a></p>
+                        <p class="text-center"><a class="btn btn-primary" href="/settings/">Adjust site-wide settings.</a></p>
                     </div>
                 </div>
             </div>
@@ -117,7 +118,7 @@
                     <div class="card-body">
                         <h5>API</h5>
                         <p>
-                            Most features of QB Reader can be accessed <a href="/tools/api-docs">through the API</a>. You can also use
+                            Most features of QB Reader can be accessed <a href="/tools/api-docs/">through the API</a>. You can also use
                             the <a href="https://github.com/qbreader/python-module">python wrapper</a> to interact with the API.
                         </p>
                         <p>
@@ -137,43 +138,15 @@
         </div>
         <h3>Feature of the Day:</h3>
         <blockquote class="blockquote">
-            <!-- <p>
-                When viewing your <a href="/user/stats/tossups">tossup</a> or <a href="/user/stats/bonuses">bonus</a> stats,
-                you can click on the column names to sort them!
-            </p> -->
-            <!-- <p>
-                In the <a href="/db">database page</a>, you can click on a card header to copy the question to your clipboard.
-            </p> -->
-            <!-- <p>
-                Check out geoword!
-                Find out more info about this buzzword-style competition on
-                <a href="https://hsquizbowl.org/forums/viewtopic.php?t=27082">this forum post</a>.
-            </p> -->
-            <!-- <p>
-                If you have an account, you can view your <a href="/user/stats/tossup-graph">tossup stats</a> and
-                <a href="/user/stats/bonus-graph">bonus stats</a> over time.
-            </p> -->
-            <!-- <p>
-                If you're logged into your account, you can now star tossups and bonuses.
-                View your starred <a href="/user/stars/tossups">tossups</a> and <a href="/user/stars/bonuses">bonuses</a>.
-            </p> -->
-            <!-- <p>
-                You can add audio effects and adjust more settings in the new <a href="/settings">settings page</a>!
-            </p> -->
-            <!-- <p>
-                Check out your <a href="/geoword">geoword</a> category stats by going to the stats page for a packet!
-            </p> -->
-            <!-- <p>
-                Check out <b>frequency lists</b> for the qbreader database <a href="/frequency-list">here</a>!
-                You can now filter frequency lists by <b>difficulty level</b>!
-            </p> -->
             <p>
-                Check out AI mode in <a href="/singleplayer/tossups"></a>singleplayer tossups!
+                To play a <a href="/database/">database search</a>, you can download the results as a .json file and upload it as a
+                local packet to play in singleplayer!
             </p>
         </blockquote>
     </div>
 
-    <script type="module" src="/bootstrap/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-kenU1KFdBIe4zVF0s0G1M5b4hcpxyD9F7jL+jjXkk+Q2h455rYXK/7HAuoJl+0I4" crossorigin="anonymous"></script>
     <script type="module" src="/script.js"></script>
 
     <script type="module" src="/index.js"></script>

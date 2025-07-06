@@ -1,7 +1,8 @@
 import questionStats from '../../scripts/auth/question-stats.js';
 import api from '../../scripts/api/index.js';
 import audio from '../../audio/index.js';
-import { arrayToRange, createBonusCard, rangeToArray } from '../../scripts/utilities/index.js';
+import { arrayToRange, rangeToArray } from '../../scripts/utilities/ranges.js';
+import createBonusGameCard from '../../scripts/utilities/bonus-game-card.js';
 import { getDropdownValues } from '../../scripts/utilities/dropdown-checklist.js';
 import CategoryModal from '../../scripts/components/CategoryModal.min.js';
 import DifficultyDropdown from '../../scripts/components/DifficultyDropdown.min.js';
@@ -13,7 +14,7 @@ import { MODE_ENUM } from '../../../quizbowl/constants.js';
 let maxPacketNumber = 24;
 
 const modeVersion = '2025-01-14';
-const queryVersion = '2024-11-01';
+const queryVersion = '2025-05-07';
 const settingsVersion = '2024-11-02';
 
 const USER_ID = 'user';
@@ -32,6 +33,7 @@ room.sockets[TEAM_ID] = socket;
 function onmessage (message) {
   const data = JSON.parse(message);
   switch (data.type) {
+    case 'alert': return window.alert(data.message);
     case 'clear-stats': return clearStats(data);
     case 'end': return next(data);
     case 'end-of-set': return endOfSet(data);
@@ -109,13 +111,11 @@ async function next ({ type, bonus, lastPartRevealed, oldBonus, packetLength, po
     document.getElementById('settings').classList.add('d-none');
   }
 
-  if (lastPartRevealed) {
-    questionStats.recordBonus(oldBonus, pointsPerPart);
-    updateStatDisplay(stats);
-  }
-
   if (type !== 'start') {
-    createBonusCard(oldBonus);
+    createBonusGameCard({
+      bonus: oldBonus,
+      starred: room.mode === MODE_ENUM.STARRED ? true : (room.mode === MODE_ENUM.LOCAL ? false : null)
+    });
   }
 
   document.getElementById('question').textContent = '';
@@ -130,6 +130,11 @@ async function next ({ type, bonus, lastPartRevealed, oldBonus, packetLength, po
     document.getElementById('reveal').disabled = false;
     document.getElementById('set-name-info').textContent = bonus.set.name;
     document.getElementById('question-number-info').textContent = bonus.number;
+  }
+
+  if (lastPartRevealed && (room.mode !== MODE_ENUM.LOCAL)) {
+    questionStats.recordBonus({ _id: oldBonus._id, pointsPerPart });
+    updateStatDisplay(stats);
   }
 }
 
@@ -234,18 +239,28 @@ function setMode ({ mode }) {
   switch (mode) {
     case MODE_ENUM.SET_NAME:
       document.getElementById('difficulty-settings').classList.add('d-none');
+      document.getElementById('local-packet-settings').classList.add('d-none');
       document.getElementById('set-settings').classList.remove('d-none');
       document.getElementById('toggle-standard-only').disabled = true;
       document.getElementById('toggle-three-part-bonuses').disabled = true;
       break;
     case MODE_ENUM.RANDOM:
       document.getElementById('difficulty-settings').classList.remove('d-none');
+      document.getElementById('local-packet-settings').classList.add('d-none');
       document.getElementById('set-settings').classList.add('d-none');
       document.getElementById('toggle-standard-only').disabled = false;
       document.getElementById('toggle-three-part-bonuses').disabled = false;
       break;
     case MODE_ENUM.STARRED:
       document.getElementById('difficulty-settings').classList.add('d-none');
+      document.getElementById('local-packet-settings').classList.add('d-none');
+      document.getElementById('set-settings').classList.add('d-none');
+      document.getElementById('toggle-standard-only').disabled = true;
+      document.getElementById('toggle-three-part-bonuses').disabled = true;
+      break;
+    case MODE_ENUM.LOCAL:
+      document.getElementById('difficulty-settings').classList.add('d-none');
+      document.getElementById('local-packet-settings').classList.remove('d-none');
       document.getElementById('set-settings').classList.add('d-none');
       document.getElementById('toggle-standard-only').disabled = true;
       document.getElementById('toggle-three-part-bonuses').disabled = true;
@@ -321,6 +336,21 @@ document.getElementById('next').addEventListener('click', function () {
   }
 });
 
+document.getElementById('local-packet-input').addEventListener('change', function (event) {
+  const file = this.files[0];
+  if (!file) { return; }
+  const reader = new window.FileReader();
+  reader.onload = function (e) {
+    try {
+      const packet = JSON.parse(e.target.result);
+      socket.sendToServer({ type: 'upload-local-packet', packet, filename: file.name });
+    } catch (error) {
+      window.alert('Invalid packet format');
+    }
+  };
+  reader.readAsText(file);
+});
+
 document.getElementById('packet-number').addEventListener('change', function () {
   const range = rangeToArray(this.value.trim(), maxPacketNumber);
   const invalid = range.some(num => num < 1 || num > maxPacketNumber);
@@ -367,6 +397,11 @@ document.getElementById('set-strictness').addEventListener('input', function () 
 document.getElementById('start').addEventListener('click', async function () {
   this.blur();
   socket.sendToServer({ type: 'start' });
+});
+
+document.getElementById('toggle-randomize-order').addEventListener('click', function () {
+  this.blur();
+  socket.sendToServer({ type: 'toggle-randomize-order', randomizeOrder: this.checked });
 });
 
 document.getElementById('toggle-settings').addEventListener('click', function () {
@@ -432,7 +467,7 @@ document.addEventListener('keydown', (event) => {
     case 's': return document.getElementById('start').click();
     case 't': return document.getElementsByClassName('star-bonus')[0].click();
     case 'y': return navigator.clipboard.writeText(room.bonus._id ?? '');
-    case '0': return document.getQuerySelector('input.checkbox[type="checkbox"]').click();
+    case '0': return document.getElementById(`checkbox-${room.pointsPerPart.length}`)?.click();
     case '1': return document.getElementById('checkbox-1').click();
     case '2': return document.getElementById('checkbox-2').click();
     case '3': return document.getElementById('checkbox-3').click();

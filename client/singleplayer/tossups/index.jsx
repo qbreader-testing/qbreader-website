@@ -4,7 +4,8 @@ import audio from '../../audio/index.js';
 import { MODE_ENUM } from '../../../quizbowl/constants.js';
 import Player from '../../../quizbowl/Player.js';
 import ClientTossupRoom from '../ClientTossupRoom.js';
-import { arrayToRange, createTossupCard, rangeToArray } from '../../scripts/utilities/index.js';
+import { arrayToRange, rangeToArray } from '../../scripts/utilities/ranges.js';
+import createTossupGameCard from '../../scripts/utilities/tossup-game-card.js';
 import { getDropdownValues } from '../../scripts/utilities/dropdown-checklist.js';
 import CategoryModal from '../../scripts/components/CategoryModal.min.js';
 import DifficultyDropdown from '../../scripts/components/DifficultyDropdown.min.js';
@@ -15,7 +16,7 @@ import AIBot from '../ai-mode/AIBot.js';
 let maxPacketNumber = 24;
 
 const modeVersion = '2025-01-14';
-const queryVersion = '2024-10-11';
+const queryVersion = '2025-05-07';
 const settingsVersion = '2024-10-16';
 const USER_ID = 'user';
 
@@ -34,6 +35,7 @@ room.sockets[USER_ID] = socket;
 function onmessage (message) {
   const data = JSON.parse(message);
   switch (data.type) {
+    case 'alert': return window.alert(data.message);
     case 'buzz': return buzz(data);
     case 'clear-stats': return clearStats(data);
     case 'end': return next(data);
@@ -131,7 +133,10 @@ async function next ({ packetLength, oldTossup, tossup: nextTossup, type }) {
   }
 
   if (type !== 'start') {
-    createTossupCard(oldTossup);
+    createTossupGameCard({
+      starred: room.mode === MODE_ENUM.STARRED ? true : (room.mode === MODE_ENUM.LOCAL ? false : null),
+      tossup: oldTossup
+    });
   }
 
   document.getElementById('answer').textContent = '';
@@ -155,9 +160,15 @@ async function next ({ packetLength, oldTossup, tossup: nextTossup, type }) {
     document.getElementById('set-name-info').textContent = nextTossup.set.name;
   }
 
-  if ((type === 'end' || type === 'next') && room.previous.userId === USER_ID) {
+  if ((type === 'end' || type === 'next') && room.previous.userId === USER_ID && (room.mode !== MODE_ENUM.LOCAL)) {
     const pointValue = room.previous.isCorrect ? (room.previous.inPower ? room.previous.powerValue : 10) : (room.previous.endOfQuestion ? 0 : room.previous.negValue);
-    questionStats.recordTossup(room.previous.tossup, room.previous.isCorrect, pointValue, room.previous.celerity, false);
+    questionStats.recordTossup({
+      _id: room.previous.tossup._id,
+      celerity: room.previous.celerity,
+      isCorrect: room.previous.isCorrect,
+      multiplayer: false,
+      pointValue
+    });
   }
 }
 
@@ -258,18 +269,28 @@ function setMode ({ mode }) {
   switch (mode) {
     case MODE_ENUM.SET_NAME:
       document.getElementById('difficulty-settings').classList.add('d-none');
+      document.getElementById('local-packet-settings').classList.add('d-none');
       document.getElementById('set-settings').classList.remove('d-none');
       document.getElementById('toggle-powermark-only').disabled = true;
       document.getElementById('toggle-standard-only').disabled = true;
       break;
     case MODE_ENUM.RANDOM:
       document.getElementById('difficulty-settings').classList.remove('d-none');
+      document.getElementById('local-packet-settings').classList.add('d-none');
       document.getElementById('set-settings').classList.add('d-none');
       document.getElementById('toggle-powermark-only').disabled = false;
       document.getElementById('toggle-standard-only').disabled = false;
       break;
     case MODE_ENUM.STARRED:
       document.getElementById('difficulty-settings').classList.add('d-none');
+      document.getElementById('local-packet-settings').classList.add('d-none');
+      document.getElementById('set-settings').classList.add('d-none');
+      document.getElementById('toggle-powermark-only').disabled = true;
+      document.getElementById('toggle-standard-only').disabled = true;
+      break;
+    case MODE_ENUM.LOCAL:
+      document.getElementById('difficulty-settings').classList.add('d-none');
+      document.getElementById('local-packet-settings').classList.remove('d-none');
       document.getElementById('set-settings').classList.add('d-none');
       document.getElementById('toggle-powermark-only').disabled = true;
       document.getElementById('toggle-standard-only').disabled = true;
@@ -349,6 +370,21 @@ document.getElementById('clear-stats').addEventListener('click', function () {
   socket.sendToServer({ type: 'clear-stats' });
 });
 
+document.getElementById('local-packet-input').addEventListener('change', function (event) {
+  const file = this.files[0];
+  if (!file) { return; }
+  const reader = new window.FileReader();
+  reader.onload = function (e) {
+    try {
+      const packet = JSON.parse(e.target.result);
+      socket.sendToServer({ type: 'upload-local-packet', packet, filename: file.name });
+    } catch (error) {
+      window.alert('Invalid packet format');
+    }
+  };
+  reader.readAsText(file);
+});
+
 document.getElementById('next').addEventListener('click', function () {
   this.blur();
   if (this.innerHTML === 'Skip') {
@@ -425,6 +461,11 @@ document.getElementById('toggle-correct').addEventListener('click', function () 
 document.getElementById('toggle-powermark-only').addEventListener('click', function () {
   this.blur();
   socket.sendToServer({ type: 'toggle-powermark-only', powermarkOnly: this.checked });
+});
+
+document.getElementById('toggle-randomize-order').addEventListener('click', function () {
+  this.blur();
+  socket.sendToServer({ type: 'toggle-randomize-order', randomizeOrder: this.checked });
 });
 
 document.getElementById('toggle-rebuzz').addEventListener('click', function () {
