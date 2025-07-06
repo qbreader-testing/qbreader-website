@@ -27,7 +27,10 @@ const room = {
  * userId to player object
  */
 const players = {};
-
+let BLOCKED_TEAM_BUZZ = false;
+let PLAYER_TEAM = null;
+let RED_SCORE = 0;
+let BLUE_SCORE = 0;
 const ROOM_NAME = decodeURIComponent(window.location.pathname.substring(13));
 let tossup = {};
 let USER_ID = window.localStorage.getItem('USER_ID') || 'unknown';
@@ -35,12 +38,12 @@ let username = window.localStorage.getItem('multiplayer-username') || api.getRan
 
 const socket = new window.WebSocket(
   window.location.href.replace('http', 'ws').split('?')[0] + '?' +
-    new URLSearchParams({
-      ...Object.fromEntries(new URLSearchParams(window.location.search)),
-      roomName: ROOM_NAME,
-      userId: USER_ID,
-      username
-    }).toString()
+  new URLSearchParams({
+    ...Object.fromEntries(new URLSearchParams(window.location.search)),
+    roomName: ROOM_NAME,
+    userId: USER_ID,
+    username
+  }).toString()
 );
 window.history.pushState({}, '', '/multiplayer/' + encodeURIComponent(ROOM_NAME));
 
@@ -59,7 +62,9 @@ socket.onclose = function (event) {
 socket.onmessage = function (event) {
   const data = JSON.parse(event.data);
   switch (data.type) {
+    case 'block-team-buzz': return blockTeamBuzz(data);
     case 'buzz': return buzz(data);
+    case 'change-team': return teamChange(data);
     case 'chat': return chat(data, false);
     case 'chat-live-update': return chat(data, true);
     case 'clear-stats': return clearStats(data);
@@ -76,6 +81,7 @@ socket.onmessage = function (event) {
     case 'give-answer-live-update': return logGiveAnswer(data);
     case 'initiated-vk': return vkInit(data);
     case 'join': return join(data);
+    case 'join-team': return joinTeam(data);
     case 'leave': return leave(data);
     case 'lost-buzzer-race': return lostBuzzerRace(data);
     case 'mute-player': return mutePlayer(data);
@@ -121,8 +127,21 @@ function ackRemovedFromRoom ({ removalType }) {
     window.location.replace('../');
   }, 100);
 }
+function blockTeamBuzz ({ team }) {
+  if (PLAYER_TEAM === team) {
+    document.getElementById('buzz').disabled = true;
+    BLOCKED_TEAM_BUZZ = true;
+    console.log('disabled buzz bc teammate wrong');
+  } else {
+    console.log('other team no buzz');
+  }
+}
 
 function buzz ({ userId, username }) {
+  console.log(players[userId].team);
+  if (players[userId].team === PLAYER_TEAM) {
+    console.log('Your teammate buzzed');
+  }
   logEventConditionally(username, 'buzzed');
   document.getElementById('buzz').disabled = true;
   document.getElementById('pause').disabled = true;
@@ -174,8 +193,8 @@ function clearStats ({ userId }) {
   for (const field of ['celerity', 'negs', 'points', 'powers', 'tens', 'tuh', 'zeroes']) {
     players[userId][field] = 0;
   }
-  upsertPlayerItem(players[userId], USER_ID, room.ownerId, socket, room.public, room.showingOffline);
-  sortPlayerListGroup();
+  upsertPlayerItem(players[userId], USER_ID, room.ownerId, socket, room.public, room.showingOffline, RED_SCORE, BLUE_SCORE);
+  sortPlayerListGroup(PLAYER_TEAM);
 }
 
 function confirmBan ({ targetId, targetUsername }) {
@@ -198,17 +217,26 @@ function connectionAcknowledged ({
   packetLength,
   players: messagePlayers,
   questionProgress,
+  team,
   settings,
   setLength: newSetLength,
-  userId
+  userId,
+  rscore,
+  bscore
 }) {
+  RED_SCORE = rscore;
+  BLUE_SCORE = bscore;
   room.public = settings.public;
   room.ownerId = serverOwnerId;
   room.setLength = newSetLength;
   USER_ID = userId;
   window.localStorage.setItem('USER_ID', USER_ID);
-
   document.getElementById('buzz').disabled = !canBuzz;
+  if (team === 'red') {
+    PLAYER_TEAM = 'red';
+  } else if (team === 'blue') {
+    PLAYER_TEAM = 'blue';
+  }
 
   if (isPermanent) {
     document.getElementById('category-select-button').disabled = true;
@@ -222,9 +250,10 @@ function connectionAcknowledged ({
   for (const userId of Object.keys(messagePlayers)) {
     messagePlayers[userId].celerity = messagePlayers[userId].celerity.correct.average;
     players[userId] = messagePlayers[userId];
-    upsertPlayerItem(players[userId], USER_ID, room.ownerId, socket, room.public, room.showingOffline);
+    console.log(players);
+    upsertPlayerItem(players[userId], USER_ID, room.ownerId, socket, room.public, room.showingOffline, RED_SCORE, BLUE_SCORE);
   }
-  sortPlayerListGroup();
+  sortPlayerListGroup(PLAYER_TEAM);
 
   setMode({ mode });
 
@@ -244,8 +273,10 @@ function connectionAcknowledged ({
         document.getElementById('next').disabled = true;
         document.getElementById('pause').disabled = true;
       } else {
-        document.getElementById('buzz').disabled = false;
-        document.getElementById('pause').disabled = false;
+        if (!BLOCKED_TEAM_BUZZ) {
+          document.getElementById('buzz').disabled = false;
+          document.getElementById('pause').disabled = false;
+        }
       }
       break;
     case 2:
@@ -361,23 +392,43 @@ async function giveAnswer ({ celerity, directive, directedPrompt, givenAnswer, p
     }
 
     if (directive === 'reject') {
-      document.getElementById('buzz').disabled = !document.getElementById('toggle-rebuzz').checked && userId === USER_ID;
+      console.log('t2');
+      console.log(BLOCKED_TEAM_BUZZ);
+
+      document.getElementById('buzz').disabled = (!document.getElementById('toggle-rebuzz').checked && userId === USER_ID) || BLOCKED_TEAM_BUZZ;
     }
 
     if (score > 10) {
       players[userId].powers++;
+      if (players[userId].team === 'red') {
+        RED_SCORE += 15;
+      } else if (players[userId].team === 'blue') {
+        BLUE_SCORE += 15;
+      }
+      logEventConditionally(username, `on team "${players[userId].team}" answered correctly, so their team will control the bonus.`);
     } else if (score === 10) {
       players[userId].tens++;
+      if (players[userId].team === 'red') {
+        RED_SCORE += 10;
+      } else if (players[userId].team === 'blue') {
+        BLUE_SCORE += 10;
+      }
+      logEventConditionally(username, `on team ${players[userId].team} answered correctly, so their team will control the bonus.`);
     } else if (score < 0) {
       players[userId].negs++;
+      if (players[userId].team === 'red') {
+        RED_SCORE -= 5;
+      } else if (players[userId].team === 'blue') {
+        BLUE_SCORE -= 5;
+      }
     }
 
     players[userId].points += score;
     players[userId].tuh++;
     players[userId].celerity = celerity;
 
-    upsertPlayerItem(players[userId], USER_ID, room.ownerId, socket, room.public, room.showingOffline);
-    sortPlayerListGroup();
+    upsertPlayerItem(players[userId], USER_ID, room.ownerId, socket, room.public, room.showingOffline, RED_SCORE, BLUE_SCORE);
+    sortPlayerListGroup(PLAYER_TEAM);
   }
 
   if (directive !== 'prompt' && userId === USER_ID) {
@@ -413,8 +464,8 @@ function join ({ isNew, user, userId, username }) {
 
   if (isNew) {
     user.celerity = user.celerity.correct.average;
-    upsertPlayerItem(user, USER_ID, room.ownerId, socket, room.public, room.showingOffline);
-    sortPlayerListGroup();
+    upsertPlayerItem(user, USER_ID, room.ownerId, socket, room.public, room.showingOffline, RED_SCORE, BLUE_SCORE);
+    sortPlayerListGroup(PLAYER_TEAM);
     players[userId] = user;
   } else {
     players[userId].online = true;
@@ -423,10 +474,53 @@ function join ({ isNew, user, userId, username }) {
   }
 }
 
+function joinTeam ({ isNew, user, userId, username, team }) {
+  logEventConditionally(username, 'joined the game on ' + team);
+  if (userId === USER_ID) { return; }
+
+  if (isNew) {
+    /*
+    console.log('user TEA');
+    console.log(user);
+    console.log('players');
+    console.log(players);
+    */
+    user.celerity = user.celerity.correct.average;
+    upsertPlayerItem(user, USER_ID, room.ownerId, socket, room.public, room.showingOffline, RED_SCORE, BLUE_SCORE);
+    sortPlayerListGroup(PLAYER_TEAM);
+    players[userId] = user;
+    /*
+    console.log("added player");
+    console.log('user TEA');
+    console.log(user);
+    console.log('players');
+    console.log(players);
+    console.log("en no");
+    */
+  } else {
+    /*
+    console.log('user');
+    console.log(user);
+    console.log('players');
+    console.log(players);
+    */
+    players[userId].online = true;
+    upsertPlayerItem(user, USER_ID, room.ownerId, socket, room.public, room.showingOffline, RED_SCORE, BLUE_SCORE);
+    sortPlayerListGroup(PLAYER_TEAM);
+    document.getElementById('points-' + userId).classList.add('bg-success');
+    document.getElementById('points-' + userId).classList.remove('bg-secondary');
+    /*
+    console.log('user');
+    console.log(user);
+    console.log('players');
+    console.log(players); */
+  }
+}
+
 function leave ({ userId, username }) {
   logEventConditionally(username, 'left the game');
   players[userId].online = false;
-  upsertPlayerItem(players[userId], USER_ID, room.ownerId, socket, room.public, room.showingOffline);
+  upsertPlayerItem(players[userId], USER_ID, room.ownerId, socket, room.public, room.showingOffline, RED_SCORE, BLUE_SCORE);
 }
 
 /**
@@ -562,7 +656,9 @@ function next ({ packetLength, oldTossup, tossup: nextTossup, type, username }) 
   } else {
     tossup = nextTossup;
     document.getElementById('buzz').textContent = 'Buzz';
+    console.log('t5');
     document.getElementById('buzz').disabled = false;
+    console.log('recove');
     document.getElementById('packet-length-info').textContent = room.mode === MODE_ENUM.SET_NAME ? packetLength : '-';
     document.getElementById('packet-number-info').textContent = tossup?.packet.number ?? '-';
     document.getElementById('pause').textContent = 'Pause';
@@ -573,6 +669,7 @@ function next ({ packetLength, oldTossup, tossup: nextTossup, type, username }) 
 
   showSkipButton();
   updateTimerDisplay(100);
+  BLOCKED_TEAM_BUZZ = false;
 }
 
 function noQuestionsFound () {
@@ -586,7 +683,7 @@ function ownerChange ({ newOwner }) {
   } else logEventConditionally(newOwner, 'became the room owner');
 
   Object.keys(players).forEach((player) => {
-    upsertPlayerItem(players[player], USER_ID, room.ownerId, socket, room.public, room.showingOffline);
+    upsertPlayerItem(players[player], USER_ID, room.ownerId, socket, room.public, room.showingOffline, RED_SCORE, BLUE_SCORE);
   });
 
   document.getElementById('toggle-controlled').disabled = room.public || (room.ownerId !== USER_ID);
@@ -602,6 +699,7 @@ function revealAnswer ({ answer, question }) {
   document.getElementById('answer').innerHTML = 'ANSWER: ' + answer;
   document.getElementById('pause').disabled = true;
   showNextButton();
+  BLOCKED_TEAM_BUZZ = false;
 }
 
 function setCategories ({ alternateSubcategories, categories, subcategories, percentView, categoryPercents, username }) {
@@ -689,14 +787,14 @@ function setUsername ({ oldUsername, newUsername, userId }) {
   logEventConditionally(oldUsername, `changed their username to ${newUsername}`);
   document.getElementById('username-' + userId).textContent = newUsername;
   players[userId].username = newUsername;
-  sortPlayerListGroup();
+  sortPlayerListGroup(PLAYER_TEAM);
 
   if (userId === USER_ID) {
     username = newUsername;
     window.localStorage.setItem('multiplayer-username', username);
     document.getElementById('username').value = username;
   }
-  upsertPlayerItem(players[userId], USER_ID, room.ownerId, socket, room.public, room.showingOffline);
+  upsertPlayerItem(players[userId], USER_ID, room.ownerId, socket, room.public, room.showingOffline, RED_SCORE, BLUE_SCORE);
 }
 
 function setYearRange ({ minYear, maxYear, username }) {
@@ -722,23 +820,76 @@ function showSkipButton () {
   document.getElementById('next').disabled = true;
 }
 
-function sortPlayerListGroup (descending = true) {
-  const listGroup = document.getElementById('player-list-group');
-  const items = Array.from(listGroup.children);
-  const offset = 'list-group-'.length;
-  items.sort((a, b) => {
-    const aPoints = parseInt(document.getElementById('points-' + a.id.substring(offset)).innerHTML);
-    const bPoints = parseInt(document.getElementById('points-' + b.id.substring(offset)).innerHTML);
-    // if points are equal, sort alphabetically by username
-    if (aPoints === bPoints) {
-      const aUsername = document.getElementById('username-' + a.id.substring(offset)).innerHTML;
-      const bUsername = document.getElementById('username-' + b.id.substring(offset)).innerHTML;
-      return descending ? aUsername.localeCompare(bUsername) : bUsername.localeCompare(aUsername);
+function sortPlayerListGroup (team, descending = true) {
+  if (team !== null) {
+    {
+      const listGroup = document.getElementById('redPlayers');
+      const items = Array.from(listGroup.children);
+      const offset = 'list-group-'.length;
+      items.sort((a, b) => {
+        const aPoints = parseInt(document.getElementById('points-' + a.id.substring(offset)).innerHTML);
+        const bPoints = parseInt(document.getElementById('points-' + b.id.substring(offset)).innerHTML);
+        // if points are equal, sort alphabetically by username
+        if (aPoints === bPoints) {
+          const aUsername = document.getElementById('username-' + a.id.substring(offset)).innerHTML;
+          const bUsername = document.getElementById('username-' + b.id.substring(offset)).innerHTML;
+          return descending ? aUsername.localeCompare(bUsername) : bUsername.localeCompare(aUsername);
+        }
+        return descending ? bPoints - aPoints : aPoints - bPoints;
+      }).forEach(item => {
+        listGroup.appendChild(item);
+      });
     }
-    return descending ? bPoints - aPoints : aPoints - bPoints;
-  }).forEach(item => {
-    listGroup.appendChild(item);
-  });
+    {
+      const listGroup = document.getElementById('bluePlayers');
+      const items = Array.from(listGroup.children);
+      const offset = 'list-group-'.length;
+      items.sort((a, b) => {
+        const aPoints = parseInt(document.getElementById('points-' + a.id.substring(offset)).innerHTML);
+        const bPoints = parseInt(document.getElementById('points-' + b.id.substring(offset)).innerHTML);
+        // if points are equal, sort alphabetically by username
+        if (aPoints === bPoints) {
+          const aUsername = document.getElementById('username-' + a.id.substring(offset)).innerHTML;
+          const bUsername = document.getElementById('username-' + b.id.substring(offset)).innerHTML;
+          return descending ? aUsername.localeCompare(bUsername) : bUsername.localeCompare(aUsername);
+        }
+        return descending ? bPoints - aPoints : aPoints - bPoints;
+      }).forEach(item => {
+        listGroup.appendChild(item);
+      });
+    }
+  } else {
+    const listGroup = document.getElementById('player-list-group');
+    const items = Array.from(listGroup.children);
+    const offset = 'list-group-'.length;
+    items.sort((a, b) => {
+      const aPoints = parseInt(document.getElementById('points-' + a.id.substring(offset)).innerHTML);
+      const bPoints = parseInt(document.getElementById('points-' + b.id.substring(offset)).innerHTML);
+      // if points are equal, sort alphabetically by username
+      if (aPoints === bPoints) {
+        const aUsername = document.getElementById('username-' + a.id.substring(offset)).innerHTML;
+        const bUsername = document.getElementById('username-' + b.id.substring(offset)).innerHTML;
+        return descending ? aUsername.localeCompare(bUsername) : bUsername.localeCompare(aUsername);
+      }
+      return descending ? bPoints - aPoints : aPoints - bPoints;
+    }).forEach(item => {
+      listGroup.appendChild(item);
+    });
+  }
+}
+
+function teamChange ({ user, username, newTeam, newRscore, newBscore }) {
+  logEventConditionally(username, `switched teams to ${newTeam}`);
+  players[user].team = newTeam;
+  if (user === USER_ID) {
+    console.log('reassigning team');
+    PLAYER_TEAM = newTeam;
+  } else {
+    console.log('not reassigning team');
+  }
+  RED_SCORE = newRscore;
+  BLUE_SCORE = newBscore;
+  Object.values(players).forEach((player) => upsertPlayerItem(player, USER_ID, room.ownerId, socket, room.public, room.showingOffline, RED_SCORE, BLUE_SCORE));
 }
 
 function toggleControlled ({ controlled, username }) {
@@ -815,7 +966,7 @@ function togglePublic ({ public: isPublic, username }) {
     toggleTimer({ timer: true });
   }
   Object.keys(players).forEach((player) => {
-    upsertPlayerItem(players[player], USER_ID, room.ownerId, socket, room.public, room.showingOffline);
+    upsertPlayerItem(players[player], USER_ID, room.ownerId, socket, room.public, room.showingOffline, RED_SCORE, BLUE_SCORE);
   });
 }
 
@@ -864,6 +1015,16 @@ document.getElementById('buzz').addEventListener('click', function () {
   if (audio.soundEffects) audio.buzz.play();
   socket.send(JSON.stringify({ type: 'buzz' }));
   socket.send(JSON.stringify({ type: 'give-answer-live-update', givenAnswer: '' }));
+});
+
+document.getElementById('switch-team').addEventListener('click', function () {
+  this.blur();
+  if (audio.soundEffects) audio.buzz.play();
+  console.log('My current team is ');
+  console.log(PLAYER_TEAM);
+  console.log('the players are');
+  console.log(players);
+  socket.send(JSON.stringify({ type: 'change-team', curTeam: PLAYER_TEAM }));
 });
 
 document.getElementById('chat').addEventListener('click', function () {
@@ -962,7 +1123,7 @@ document.getElementById('set-strictness').addEventListener('input', function () 
 document.getElementById('toggle-offline-players').addEventListener('click', function () {
   room.showingOffline = this.checked;
   this.blur();
-  Object.values(players).forEach((player) => upsertPlayerItem(player, USER_ID, room.ownerId, socket, room.public, room.showingOffline));
+  Object.values(players).forEach((player) => upsertPlayerItem(player, USER_ID, room.ownerId, socket, room.public, room.showingOffline, RED_SCORE, BLUE_SCORE));
 });
 
 document.getElementById('toggle-controlled').addEventListener('click', function () {
