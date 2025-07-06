@@ -80,7 +80,7 @@ export default function upsertPlayerItem (player, USER_ID, ownerId, socket, isPu
       <div class="d-flex red-header justify-content-between align-items-center">
           <div class="d-flex align-items-center">
               <span class="me-1">Red Team</span>
-              
+
           </div>
           <span><span id="points-red" class="badge rounded-pill bg-success">${rscore}</span></span>
       </div>`;
@@ -98,7 +98,7 @@ export default function upsertPlayerItem (player, USER_ID, ownerId, socket, isPu
       <div class="d-flex red-header justify-content-between align-items-center">
           <div class="d-flex align-items-center">
               <span class="me-1">Red Team</span>
-              
+
           </div>
           <span><span id="points-red" class="badge rounded-pill bg-success">${rscore}</span></span>
       </div>`;
@@ -113,7 +113,7 @@ export default function upsertPlayerItem (player, USER_ID, ownerId, socket, isPu
   <div class="d-flex blue-header justify-content-between align-items-center">
       <div class="d-flex align-items-center">
           <span class="me-1">Blue Team</span>
-          
+
       </div>
       <span><span id="points-blue" class="badge rounded-pill bg-success">${bscore}</span></span>
   </div>
@@ -132,7 +132,7 @@ export default function upsertPlayerItem (player, USER_ID, ownerId, socket, isPu
   <div class="d-flex blue-header justify-content-between align-items-center">
       <div class="d-flex align-items-center">
           <span class="me-1">Blue Team</span>
-          
+
       </div>
       <span><span id="points-blue" class="badge rounded-pill bg-success">${bscore}</span></span>
   </div>
@@ -224,23 +224,15 @@ export default function upsertPlayerItem (player, USER_ID, ownerId, socket, isPu
       return;
     }
 
-    const { userId, username, powers = 0, tens = 0, negs = 0, tuh = 0, points = 0, online } = player;
-    const celerity = player?.celerity?.correct?.average ?? player?.celerity ?? 0;
-
-  const playerItem = document.createElement('a');
-  playerItem.className = `list-group-item ${userId === USER_ID ? 'user-score' : ''} clickable ${showingOffline === false && player.online === false && 'd-none'}`;
-  playerItem.id = `list-group-${userId}`;
-  const displayUsername = (playerIsOwner && !isPublic) ? `👑 ${username}` : username;
+    const playerItem = document.createElement('a');
+    playerItem.className = `list-group-item ${userId === USER_ID ? 'user-score' : ''} clickable ${showingOffline === false && player.online === false && 'd-none'}`;
+    playerItem.id = `list-group-${userId}`;
+    const displayUsername = (playerIsOwner && !isPublic) ? `👑 ${username}` : username;
 
     // Remove the existing player item if it exists
     if (document.getElementById('list-group-' + userId)) {
       document.getElementById('list-group-' + userId).remove();
     }
-
-    const playerItem = document.createElement('a');
-    playerItem.className = `list-group-item ${userId === USER_ID ? 'user-score' : ''} clickable ${showingOffline === false && player.online === false && 'd-none'}`;
-    playerItem.id = `list-group-${userId}`;
-    const displayUsername = (playerIsOwner && !isPublic) ? `👑 ${escapeHTML(username)}` : escapeHTML(username);
 
     playerItem.innerHTML = `
   <div class="d-flex justify-content-between align-items-center">
